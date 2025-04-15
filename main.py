@@ -197,8 +197,10 @@ if st.session_state.get('step') == 'waiting':
 if all(st.session_state['matches']):
     st.balloons()
     stars = "⭐" * (3 if st.session_state['attempts'] <= CARD_COUNT else 2 if st.session_state['attempts'] <= CARD_COUNT + 3 else 1)
-    st.success(f"You won in {st.session_state['attempts']} attempts! / 你用了 {st.session_state['attempts']} 次配對成功！
-Score: {stars} / 星級評分：{stars}")
+    st.success(f"""
+You won in {st.session_state['attempts']} attempts! / 你用了 {st.session_state['attempts']} 次配對成功！
+Score: {stars} / 星級評分：{stars}
+""")
     if st.button("Play Next Round / 下一關"):
         next_level = {'Easy': 'Medium', 'Medium': 'Hard', 'Hard': 'Hard'}[st.session_state['level']]
         st.session_state['level'] = next_level
