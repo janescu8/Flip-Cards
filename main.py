@@ -68,22 +68,24 @@ if os.path.exists("click.mp3"):
 
 # 初始畫面 - 開始按鈕
 if not st.session_state['game_started']:
-    st.title("🎴 翻翻樂記憶遊戲")
+    st.title("🎴 翻翻樂記憶遊戲 / Memory Flip Game")
     st.markdown("""
-    歡迎來到可愛的翻牌挑戰！
+歡迎來到可愛的翻牌挑戰！ / Welcome to the Cute Flip Card Challenge!
 
-    - 選擇主題與難度
-    - 在時間內找出所有配對卡牌
-    - 點擊下方按鈕開始！
-    """)
+- 選擇主題與難度 / Choose your theme and difficulty
+- 在時間內找出所有配對卡牌 / Match all pairs before time runs out
+- 點擊下方按鈕開始！ / Click the button below to start!
+""")
     if st.button("🚀 開始遊戲"):
         st.session_state['game_started'] = True
-        st.experimental_rerun()
+        st.rerun()  # ⚠️ Fix for newer Streamlit versions
+# 切換到 st.rerun() 以避免舊版 experimental_rerun() 出錯
+# Switch to st.rerun() to avoid deprecated error in older environments
     st.stop()
 
 # 遊戲正式畫面開始
-st.title("Flip Card Game 🎮")
-st.write("Find all matching pairs before time runs out!")
+st.title("Flip Card Game 🎮 / 翻牌遊戲")
+st.write("Find all matching pairs before time runs out! / 在時間內找出所有配對卡牌！")
 
 # Sidebar: settings
 st.sidebar.subheader("Choose Emoji Theme")
@@ -161,8 +163,8 @@ if selected_theme != st.session_state['theme'] or selected_level != st.session_s
     restart_game()
 
 if st.session_state['game_over']:
-    st.error("⏰ Time's up! Game Over.")
-    if st.button("Try Again"):
+    st.error("⏰ Time's up! Game Over. / 時間到，遊戲結束！")
+    if st.button("Try Again / 再玩一次"):
         restart_game()
     st.stop()
 
@@ -195,10 +197,11 @@ if st.session_state.get('step') == 'waiting':
 if all(st.session_state['matches']):
     st.balloons()
     stars = "⭐" * (3 if st.session_state['attempts'] <= CARD_COUNT else 2 if st.session_state['attempts'] <= CARD_COUNT + 3 else 1)
-    st.success(f"You won in {st.session_state['attempts']} attempts! Score: {stars}")
-    if st.button("Play Next Round"):
+    st.success(f"You won in {st.session_state['attempts']} attempts! / 你用了 {st.session_state['attempts']} 次配對成功！
+Score: {stars} / 星級評分：{stars}")
+    if st.button("Play Next Round / 下一關"):
         next_level = {'Easy': 'Medium', 'Medium': 'Hard', 'Hard': 'Hard'}[st.session_state['level']]
         st.session_state['level'] = next_level
         restart_game()
 else:
-    st.write(f"Attempts: {st.session_state['attempts']}")
+    st.write(f"Attempts: {st.session_state['attempts']} / 嘗試次數")
