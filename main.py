@@ -33,6 +33,8 @@ if 'time_limit' not in st.session_state:
     st.session_state['time_limit'] = 30
 if 'start_time' not in st.session_state:
     st.session_state['start_time'] = time.time()
+if 'game_started' not in st.session_state:
+    st.session_state['game_started'] = False
 
 EMOJI_MAP = EMOJI_THEMES[st.session_state['theme']]
 PAIR_COUNT = LEVELS[st.session_state['level']]
@@ -64,6 +66,22 @@ if os.path.exists("click.mp3"):
     with open("click.mp3", "rb") as f:
         click_base64 = base64.b64encode(f.read()).decode()
 
+# 初始畫面 - 開始按鈕
+if not st.session_state['game_started']:
+    st.title("🎴 翻翻樂記憶遊戲")
+    st.markdown("""
+    歡迎來到可愛的翻牌挑戰！
+
+    - 選擇主題與難度
+    - 在時間內找出所有配對卡牌
+    - 點擊下方按鈕開始！
+    """)
+    if st.button("🚀 開始遊戲"):
+        st.session_state['game_started'] = True
+        st.experimental_rerun()
+    st.stop()
+
+# 遊戲正式畫面開始
 st.title("Flip Card Game 🎮")
 st.write("Find all matching pairs before time runs out!")
 
@@ -128,6 +146,9 @@ def restart_game():
     st.session_state['step'] = None
     st.session_state['start_time'] = time.time()
     st.session_state['game_over'] = False
+
+    # 保持已進入遊戲狀態
+    st.session_state['game_started'] = True
 
 time_left = st.session_state['time_limit'] - int(time.time() - st.session_state['start_time'])
 if time_left <= 0 and not all(st.session_state['matches']):
