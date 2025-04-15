@@ -1,6 +1,8 @@
 import streamlit as st
 import random
 import time
+import os
+import base64
 
 EMOJI_THEMES = {
     'fruits': {
@@ -18,9 +20,9 @@ EMOJI_THEMES = {
 }
 
 LEVELS = {
-    'Easy': 4,     # 2 pairs
-    'Medium': 6,   # 3 pairs
-    'Hard': 10     # 5 pairs
+    'Easy': 4,
+    'Medium': 6,
+    'Hard': 10
 }
 
 if 'theme' not in st.session_state:
@@ -31,8 +33,6 @@ if 'time_limit' not in st.session_state:
     st.session_state['time_limit'] = 30
 if 'start_time' not in st.session_state:
     st.session_state['start_time'] = time.time()
-if 'bgm_on' not in st.session_state:
-    st.session_state['bgm_on'] = True
 
 EMOJI_MAP = EMOJI_THEMES[st.session_state['theme']]
 PAIR_COUNT = LEVELS[st.session_state['level']]
@@ -54,24 +54,60 @@ if 'cards' not in st.session_state:
     st.session_state['step'] = None
     st.session_state['game_over'] = False
 
-# Background music toggle button
-with st.sidebar:
-    if st.button("🔊" if st.session_state['bgm_on'] else "🔇", help="Toggle background music"):
-        st.session_state['bgm_on'] = not st.session_state['bgm_on']
+# 音效 base64 編碼
+bgm_base64 = ""
+click_base64 = ""
+if os.path.exists("bgm.mp3"):
+    with open("bgm.mp3", "rb") as f:
+        bgm_base64 = base64.b64encode(f.read()).decode()
+if os.path.exists("click.mp3"):
+    with open("click.mp3", "rb") as f:
+        click_base64 = base64.b64encode(f.read()).decode()
 
-if st.session_state['bgm_on']:
-    with open("bgm.mp3", "rb") as bgm:
-        st.audio(bgm.read(), format="audio/mp3", loop=True)
+st.title("Flip Card Game 🎮")
+st.write("Find all matching pairs before time runs out!")
 
-def play_sound():
-    with open("click.mp3", "rb") as s:
-        st.audio(s.read(), format="audio/mp3")
+# Sidebar: settings
+st.sidebar.subheader("Choose Emoji Theme")
+selected_theme = st.sidebar.radio("Theme", list(EMOJI_THEMES.keys()), index=list(EMOJI_THEMES.keys()).index(st.session_state['theme']))
+selected_level = st.sidebar.radio("Level", list(LEVELS.keys()), index=list(LEVELS.keys()).index(st.session_state['level']))
+
+st.sidebar.markdown("""
+<button id="muteToggle" onclick="toggleMute()" style="font-size: 24px; background: none; border: none; cursor: pointer;">
+🔊
+</button>
+""", unsafe_allow_html=True)
+
+# 音效嵌入 HTML
+st.components.v1.html(f"""
+<audio id="bgm" src="data:audio/mp3;base64,{bgm_base64}" loop></audio>
+<audio id="clickSound" src="data:audio/mp3;base64,{click_base64}"></audio>
+<script>
+let isMuted = false;
+const bgm = document.getElementById("bgm");
+const clickSound = document.getElementById("clickSound");
+const muteBtn = document.getElementById("muteToggle");
+
+bgm.play();
+
+function toggleMute() {{
+    isMuted = !isMuted;
+    bgm.muted = isMuted;
+    clickSound.muted = isMuted;
+    muteBtn.innerText = isMuted ? "🔇" : "🔊";
+}}
+
+function playClick() {{
+    if (!isMuted) clickSound.play();
+}}
+</script>
+""", height=0)
 
 def flip_card(index):
     if st.session_state['flipped'][index] or st.session_state['matches'][index]:
         return
 
-    play_sound()
+    st.components.v1.html("<script>playClick();</script>", height=0)
 
     if st.session_state['first_card'] is None:
         st.session_state['first_card'] = index
@@ -93,19 +129,10 @@ def restart_game():
     st.session_state['start_time'] = time.time()
     st.session_state['game_over'] = False
 
-st.title("Flip Card Game 🎮")
-st.write("Find all matching pairs before time runs out!")
-
-# Sidebar: settings
-st.sidebar.subheader("Choose Emoji Theme")
-selected_theme = st.sidebar.radio("Theme", list(EMOJI_THEMES.keys()), index=list(EMOJI_THEMES.keys()).index(st.session_state['theme']))
-selected_level = st.sidebar.radio("Level", list(LEVELS.keys()), index=list(LEVELS.keys()).index(st.session_state['level']))
-
 time_left = st.session_state['time_limit'] - int(time.time() - st.session_state['start_time'])
 if time_left <= 0 and not all(st.session_state['matches']):
     st.session_state['game_over'] = True
 
-# Reset if theme or level changes
 if selected_theme != st.session_state['theme'] or selected_level != st.session_state['level']:
     st.session_state['theme'] = selected_theme
     st.session_state['level'] = selected_level
