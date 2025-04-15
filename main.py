@@ -52,6 +52,21 @@ if 'cards' not in st.session_state:
     st.session_state['step'] = None
     st.session_state['game_over'] = False
 
+# Load background music
+with open("background_music.mp3", "rb") as bgm:
+    st.audio(bgm.read(), format="audio/mp3", loop=True)
+
+def play_sound(effect):
+    sound_files = {
+        'match': "match_sound.mp3",
+        'fail': "fail_sound.mp3",
+        'win': "win_sound.mp3",
+        'lose': "lose_sound.mp3"
+    }
+    if effect in sound_files:
+        with open(sound_files[effect], "rb") as s:
+            st.audio(s.read(), format="audio/mp3")
+
 def flip_card(index):
     if st.session_state['flipped'][index] or st.session_state['matches'][index]:
         return
@@ -88,6 +103,7 @@ selected_level = st.sidebar.radio("Level", list(LEVELS.keys()), index=list(LEVEL
 time_left = st.session_state['time_limit'] - int(time.time() - st.session_state['start_time'])
 if time_left <= 0 and not all(st.session_state['matches']):
     st.session_state['game_over'] = True
+    play_sound('lose')
 
 # Reset if theme or level changes
 if selected_theme != st.session_state['theme'] or selected_level != st.session_state['level']:
@@ -121,15 +137,18 @@ if st.session_state.get('step') == 'waiting':
     if st.session_state['cards'][first] == st.session_state['cards'][second]:
         st.session_state['matches'][first] = True
         st.session_state['matches'][second] = True
+        play_sound('match')
     else:
         st.session_state['flipped'][first] = False
         st.session_state['flipped'][second] = False
+        play_sound('fail')
     st.session_state['first_card'] = None
     st.session_state['second_card'] = None
     st.session_state['step'] = None
 
 if all(st.session_state['matches']):
     st.balloons()
+    play_sound('win')
     stars = "⭐" * (3 if st.session_state['attempts'] <= CARD_COUNT else 2 if st.session_state['attempts'] <= CARD_COUNT + 3 else 1)
     st.success(f"You won in {st.session_state['attempts']} attempts! Score: {stars}")
     if st.button("Play Next Round"):
