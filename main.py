@@ -31,6 +31,8 @@ if 'time_limit' not in st.session_state:
     st.session_state['time_limit'] = 30
 if 'start_time' not in st.session_state:
     st.session_state['start_time'] = time.time()
+if 'bgm_on' not in st.session_state:
+    st.session_state['bgm_on'] = True
 
 EMOJI_MAP = EMOJI_THEMES[st.session_state['theme']]
 PAIR_COUNT = LEVELS[st.session_state['level']]
@@ -52,9 +54,14 @@ if 'cards' not in st.session_state:
     st.session_state['step'] = None
     st.session_state['game_over'] = False
 
-# Load background music
-with open("bgm.mp3", "rb") as bgm:
-    st.audio(bgm.read(), format="audio/mp3", loop=True)
+# Background music toggle button
+with st.sidebar:
+    if st.button("🔊" if st.session_state['bgm_on'] else "🔇", help="Toggle background music"):
+        st.session_state['bgm_on'] = not st.session_state['bgm_on']
+
+if st.session_state['bgm_on']:
+    with open("bgm.mp3", "rb") as bgm:
+        st.audio(bgm.read(), format="audio/mp3", loop=True)
 
 def play_sound():
     with open("click.mp3", "rb") as s:
@@ -90,7 +97,6 @@ st.title("Flip Card Game 🎮")
 st.write("Find all matching pairs before time runs out!")
 
 # Sidebar: settings
-st.sidebar.title("Settings")
 st.sidebar.subheader("Choose Emoji Theme")
 selected_theme = st.sidebar.radio("Theme", list(EMOJI_THEMES.keys()), index=list(EMOJI_THEMES.keys()).index(st.session_state['theme']))
 selected_level = st.sidebar.radio("Level", list(LEVELS.keys()), index=list(LEVELS.keys()).index(st.session_state['level']))
