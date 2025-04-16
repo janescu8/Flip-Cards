@@ -85,7 +85,6 @@ if not st.session_state['game_started']:
 
 # 遊戲正式畫面開始
 st.title("Flip Card Game 🎮 / 翻牌遊戲")
-st.write("Find all matching pairs before time runs out! / 在時間內找出所有配對卡牌！")
 
 # Sidebar: settings
 st.sidebar.subheader("Choose Emoji Theme")
