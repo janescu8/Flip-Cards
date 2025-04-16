@@ -23,6 +23,12 @@ LEVELS = {
     'Hard': 10
 }
 
+def get_pair_count():
+    return LEVELS[st.session_state['level']]
+
+def get_card_count():
+    return get_pair_count() * 2
+
 if 'theme' not in st.session_state:
     st.session_state['theme'] = 'fruits'
 if 'level' not in st.session_state:
@@ -35,19 +41,17 @@ if 'game_started' not in st.session_state:
     st.session_state['game_started'] = False
 
 EMOJI_MAP = EMOJI_THEMES[st.session_state['theme']]
-PAIR_COUNT = LEVELS[st.session_state['level']]
-CARD_COUNT = PAIR_COUNT * 2
 
 def generate_paired_cards():
-    myNumbers = random.sample(range(1, 11), PAIR_COUNT)
+    myNumbers = random.sample(range(1, 11), get_pair_count())
     myNumbers_union = myNumbers + myNumbers
     random.shuffle(myNumbers_union)
     return [EMOJI_MAP[i] for i in myNumbers_union]
 
 if 'cards' not in st.session_state:
     st.session_state['cards'] = generate_paired_cards()
-    st.session_state['flipped'] = [False] * CARD_COUNT
-    st.session_state['matches'] = [False] * CARD_COUNT
+    st.session_state['flipped'] = [False] * get_card_count()
+    st.session_state['matches'] = [False] * get_card_count()
     st.session_state['first_card'] = None
     st.session_state['second_card'] = None
     st.session_state['attempts'] = 0
@@ -158,14 +162,22 @@ if st.session_state.get('step') == 'waiting':
 
 if all(st.session_state['matches']):
     st.balloons()
-    stars = "⭐" * (3 if st.session_state['attempts'] <= CARD_COUNT else 2 if st.session_state['attempts'] <= CARD_COUNT + 3 else 1)
+    stars = "⭐" * (3 if st.session_state['attempts'] <= get_card_count() else 2 if st.session_state['attempts'] <= get_card_count() + 3 else 1)
     st.success(f"""
 You won in {st.session_state['attempts']} attempts! / 你用了 {st.session_state['attempts']} 次配對成功！
 Score: {stars} / 星級評分：{stars}
 """)
-    if st.button("Play Next Round / 下一關"):
-        next_level = {'Easy': 'Medium', 'Medium': 'Hard', 'Hard': 'Hard'}[st.session_state['level']]
-        st.session_state['level'] = next_level
-        restart_game()
+    if st.session_state['level'] == 'Hard':
+        st.success("🎉 You finished all levels! / 你已完成所有關卡！")
+        if st.button("🔄 Restart Game / 重新開始"):
+            st.session_state['level'] = 'Easy'
+            st.session_state['game_started'] = False
+            st.rerun()
+        st.stop()
+    else:
+        if st.button("Play Next Round / 下一關"):
+            next_level = {'Easy': 'Medium', 'Medium': 'Hard', 'Hard': 'Hard'}[st.session_state['level']]
+            st.session_state['level'] = next_level
+            restart_game()
 else:
     st.write(f"Attempts: {st.session_state['attempts']} / 嘗試次數")
