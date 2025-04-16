@@ -74,6 +74,7 @@ if not st.session_state['game_started']:
 # 遊戲正式畫面開始
 st.title("Flip Card Game 🎮 / 翻牌遊戲")
 st.write("Find all matching pairs before time runs out! / 在時間內找出所有配對卡牌！")
+st.write(f"🔖 Current Level: {st.session_state['level']} / 當前難度：{st.session_state['level']}")
 
 # Sidebar: settings
 st.sidebar.subheader("Choose Emoji Theme")
@@ -121,7 +122,13 @@ if st.session_state['game_over']:
         restart_game()
     st.stop()
 
-st.sidebar.markdown(f"⏱ Time left: **{time_left} sec**")
+with st.sidebar:
+    timer_slot = st.empty()
+    time_left = st.session_state['time_limit'] - int(time.time() - st.session_state['start_time'])
+    if time_left <= 0 and not all(st.session_state['matches']):
+        st.session_state['game_over'] = True
+        st.rerun()
+    timer_slot.markdown(f"⏱ Time left: **{time_left} sec**")
 
 cols = st.columns(len(st.session_state['cards']))
 for i, col in enumerate(cols):
