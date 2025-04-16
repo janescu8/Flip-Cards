@@ -1,8 +1,6 @@
 import streamlit as st
 import random
 import time
-import os
-import base64
 
 EMOJI_THEMES = {
     'fruits': {
@@ -56,16 +54,6 @@ if 'cards' not in st.session_state:
     st.session_state['step'] = None
     st.session_state['game_over'] = False
 
-# 音效 base64 編碼
-bgm_base64 = ""
-click_base64 = ""
-if os.path.exists("bgm.mp3"):
-    with open("bgm.mp3", "rb") as f:
-        bgm_base64 = base64.b64encode(f.read()).decode()
-if os.path.exists("click.mp3"):
-    with open("click.mp3", "rb") as f:
-        click_base64 = base64.b64encode(f.read()).decode()
-
 # 初始畫面 - 開始按鈕
 if not st.session_state['game_started']:
     st.title("🎴 翻翻樂記憶遊戲 / Memory Flip Game")
@@ -85,48 +73,16 @@ if not st.session_state['game_started']:
 
 # 遊戲正式畫面開始
 st.title("Flip Card Game 🎮 / 翻牌遊戲")
+st.write("Find all matching pairs before time runs out! / 在時間內找出所有配對卡牌！")
 
 # Sidebar: settings
 st.sidebar.subheader("Choose Emoji Theme")
 selected_theme = st.sidebar.radio("Theme", list(EMOJI_THEMES.keys()), index=list(EMOJI_THEMES.keys()).index(st.session_state['theme']))
 selected_level = st.sidebar.radio("Level", list(LEVELS.keys()), index=list(LEVELS.keys()).index(st.session_state['level']))
 
-st.sidebar.markdown("""
-<button id="muteToggle" onclick="toggleMute()" style="font-size: 24px; background: none; border: none; cursor: pointer;">
-🔊
-</button>
-""", unsafe_allow_html=True)
-
-# 音效嵌入 HTML
-st.components.v1.html(f"""
-<audio id="bgm" src="data:audio/mp3;base64,{bgm_base64}" loop></audio>
-<audio id="clickSound" src="data:audio/mp3;base64,{click_base64}"></audio>
-<script>
-let isMuted = false;
-const bgm = document.getElementById("bgm");
-const clickSound = document.getElementById("clickSound");
-const muteBtn = document.getElementById("muteToggle");
-
-bgm.play();
-
-function toggleMute() {{
-    isMuted = !isMuted;
-    bgm.muted = isMuted;
-    clickSound.muted = isMuted;
-    muteBtn.innerText = isMuted ? "🔇" : "🔊";
-}}
-
-function playClick() {{
-    if (!isMuted) clickSound.play();
-}}
-</script>
-""", height=0)
-
 def flip_card(index):
     if st.session_state['flipped'][index] or st.session_state['matches'][index]:
         return
-
-    st.components.v1.html("<script>playClick();</script>", height=0)
 
     if st.session_state['first_card'] is None:
         st.session_state['first_card'] = index
@@ -147,8 +103,6 @@ def restart_game():
     st.session_state['step'] = None
     st.session_state['start_time'] = time.time()
     st.session_state['game_over'] = False
-
-    # 保持已進入遊戲狀態
     st.session_state['game_started'] = True
 
 time_left = st.session_state['time_limit'] - int(time.time() - st.session_state['start_time'])
