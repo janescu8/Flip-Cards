@@ -66,9 +66,7 @@ if not st.session_state['game_started']:
 """)
     if st.button("🚀 開始遊戲"):
         st.session_state['game_started'] = True
-        st.rerun()  # ⚠️ Fix for newer Streamlit versions
-# 切換到 st.rerun() 以避免舊版 experimental_rerun() 出錯
-# Switch to st.rerun() to avoid deprecated error in older environments
+        st.rerun()
     st.stop()
 
 # 遊戲正式畫面開始
@@ -110,15 +108,19 @@ time_left = st.session_state['time_limit'] - int(time.time() - st.session_state[
 if time_left <= 0 and not all(st.session_state['matches']):
     st.session_state['game_over'] = True
 
-if selected_theme != st.session_state['theme'] or selected_level != st.session_state['level']:
+if selected_theme != st.session_state['theme']:
     st.session_state['theme'] = selected_theme
-    st.session_state['level'] = selected_level
+    st.session_state['level'] = 'Easy'  # 切換主題時重設為 Easy
     EMOJI_MAP = EMOJI_THEMES[selected_theme]
+    restart_game()
+elif selected_level != st.session_state['level']:
+    st.session_state['level'] = selected_level
     restart_game()
 
 if st.session_state['game_over']:
     st.error("⏰ Time's up! Game Over. / 時間到，遊戲結束！")
     if st.button("Try Again / 再玩一次"):
+        st.session_state['level'] = 'Easy'  # 強制重設為 Easy
         restart_game()
     st.stop()
 
