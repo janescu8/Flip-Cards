@@ -21,7 +21,7 @@ EMOJI_THEMES = {
 LEVELS = {
     'Easy': 4,
     'Medium': 6,
-    'Hard': 8
+    'Hard': 7
 }
 
 def get_pair_count():
